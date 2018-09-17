@@ -1,13 +1,30 @@
-# This is a temporary dummy config to stop CircleCI from building this branch with automatic v1.0 configuration for PHP
-
 version: 2
+
 jobs:
   build:
+    working_directory: /home/agent/build
     docker:
-      - image: alpine
-    # Ignore all branches
-    branches:
-      ignore:
-        - /.*/
+      - image: seandietrich/ci-agent:php
+    environment:
+       BASH_ENV: /home/agent/.bashrc  # Tell CircleCI where to read the shared build environment variables from
     steps:
-      - run: echo 'Hello World'
+      - checkout
+      - run:
+          name: Configure local build environment
+          command: |
+            touch $BASH_ENV
+            echo 'source build-env' >> $BASH_ENV
+      - run:
+          name: Sandbox provisioning
+          command: |
+            build-notify pending
+            build-init
+            slack "Started sandbox build for branch *${GIT_BRANCH_NAME}* on *${GIT_REPO_NAME}*"
+            ssh docker-host "cd $REMOTE_BUILD_DIR && fin init" || ( build-notify failure && exit 1 )
+            slack "Completed sandbox build for branch *${GIT_BRANCH_NAME}* on *${GIT_REPO_NAME}*:\n<http://${DOMAIN}|http://${DOMAIN}>"
+            if [[ $? == 0 ]]; then build-notify success; else build-notify failure; fi
+workflows:
+  version: 2
+  build_sandbox:
+    jobs:
+      - build

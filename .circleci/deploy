@@ -8,7 +8,12 @@ if [[ "$DEPLOY_HOST" == "" || "$DEPLOY_REPO" == "" || "$DEPLOY_HOST_KEY" == "" ]
 	exit 1;
 fi
 
-cat .circleci/ssh_config >> ~/.ssh/config
+# Prepend with our host
+mv ~/.ssh/config ~/.ssh/config_bkup
+cat .circleci/ssh_config > ~/.ssh/config
+cat ~/.ssh/config_bkup >> ~/.ssh/config
+rm ~/.ssh/config_bkup
+
 sed -i "s/Host DEPLOY_HOST/Host $DEPLOY_HOST/g" $HOME/.ssh/config
 
 echo "$DEPLOY_HOST_KEY" | base64 -d > $HOME/.ssh/remote

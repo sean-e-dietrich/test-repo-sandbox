@@ -14,5 +14,5 @@ sed -i "s/Host DEPLOY_HOST/Host $DEPLOY_HOST/g" $HOME/.ssh/config
 echo "$DEPLOY_HOST_KEY" | base64 -d > $HOME/.ssh/remote
 chmod 0600 $HOME/.ssh/remote
 
-git remote add remote $DEPLY_REPO
+git remote add remote $DEPLOY_REPO
 git push remote master

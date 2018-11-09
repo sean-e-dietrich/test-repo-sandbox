@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Abort if anything fails
+set -e
+
+if [[ "$DEPLOY_HOST" == "" || "$DEPLOY_REPO" == "" || "$DEPLOY_HOST_KEY" == "" ]]; then
+	echo 'One or more Variables not set: DEPLOY_HOST, DEPLOY_REPO, DEPLOY_HOST_KEY'
+	exit 1;
+fi
+
+cat .circleci/ssh_config >> ~/.ssh/config
+sed -i "s/Host DEPLOY_HOST/Host $DEPLOY_HOST/g" $HOME/.ssh/config
+
+echo "$DEPLOY_HOST_KEY" | base64 -d > $HOME/.ssh/remote
+chmod 0600 $HOME/.ssh/remote
+
+git remote add remote $DEPLY_REPO
+git push remote master

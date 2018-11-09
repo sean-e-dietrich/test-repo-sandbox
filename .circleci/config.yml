@@ -23,9 +23,29 @@ jobs:
             ssh docker-host "cd $REMOTE_BUILD_DIR && fin init" || ( build-notify failure && exit 1 )
             slack "Completed sandbox build for branch *${GIT_BRANCH_NAME}* on *${GIT_REPO_NAME}*:\n<http://${DOMAIN}|http://${DOMAIN}>"
             if [[ $? == 0 ]]; then build-notify success; else build-notify failure; fi
+  deploy:
+    working_directory: /home/agent/build
+    docker:
+      - image: docksal/ci-agent:edge-php
+    environment:
+       BASH_ENV: /home/agent/.bashrc  # Tell CircleCI where to read the shared build environment variables from
+    steps:
+      - checkout
+      - run:
+          name: Deploying to Github
+          command: ./.circleci/deploy
+
 workflows:
   version: 2
   build_sandbox:
     jobs:
       - build:
-          context: global  # Load org level environment variables from CircleCI
+          context: global
+          filters:
+            branches:
+              ignore: master
+      - deploy:
+          context: global
+          filters:
+            branches:
+              only: master
